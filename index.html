@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f8ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    .button-container {
+      margin: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button#subtract-water {
+      background-color: #f44336;
+    }
+    table {
+      border-collapse: collapse;
+      width: 80%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Water Tracker</h1>
+  <div class="button-container">
+    <button id="add-water">+</button>
+    <button id="subtract-water">-</button>
+  </div>
+  <div id="water-intake"></div>
+
+  <script>
+    const backendUrl = 'http://localhost:3000'; // Update this to your deployed backend URL
+
+    document.getElementById('add-water').addEventListener('click', async () => {
+      console.log('Adding water'); // Log button click
+      await fetch(`${backendUrl}/api/water`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: 750 }),
+      });
+      loadWaterIntake();
+    });
+
+    document.getElementById('subtract-water').addEventListener('click', async () => {
+      console.log('Subtracting water'); // Log button click
+      await fetch(`${backendUrl}/api/water/decrement`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount: 750 }),
+      });
+      loadWaterIntake();
+    });
+
+    async function loadWaterIntake() {
+      const response = await fetch(`${backendUrl}/api/water`);
+      const data = await response.json();
+      const table = `
+        <table>
+          <tr>
+            <th>Date</th>
+            <th>Intake (liters)</th>
+            <th>Bottles</th>
+          </tr>
+          ${data.map(entry => `
+            <tr>
+              <td>${new Date(entry.date).toLocaleDateString()}</td>
+              <td>${(entry.amount / 1000).toFixed(2)} L</td>
+              <td>${entry.bottles}</td>
+            </tr>
+          `).join('')}
+        </table>
+      `;
+      document.getElementById('water-intake').innerHTML = table;
+    }
+
+    loadWaterIntake();
+  </script>
+</body>
+</html>
